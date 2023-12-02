@@ -57,6 +57,7 @@ if __name__ == "__main__":
     shuffle(val)
 
     print("Writing filelists/train.txt")
+    os.makedirs("filelists", exist_ok=True)
     with open("filelists/train.txt", "w") as f:
         for fname in train:
             wavpath = fname
@@ -69,5 +70,6 @@ if __name__ == "__main__":
             f.write(wavpath + "\n")
 
     print("Writing configs/config.json")
+    os.makedirs("configs", exist_ok=True)
     with open("configs/config.json", "w") as f:
         json.dump(config_template, f, indent=2)
