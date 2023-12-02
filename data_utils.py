@@ -37,7 +37,6 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         return audio_norm
 
     def random_slice(self, audio_norm):
-
         if random.choice([True, False, False]) and self.pitch_aug:
             audio_norm = librosa.effects.pitch_shift(y = audio_norm.squeeze().numpy(), sr = self.sampling_rate, n_steps=random.uniform(-5, 12))
             audio_norm = torch.from_numpy(audio_norm)
@@ -68,7 +67,6 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.audiopaths)
-
 
 class TextAudioCollate:
     def __call__(self, batch):

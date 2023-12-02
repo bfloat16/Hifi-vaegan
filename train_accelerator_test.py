@@ -67,7 +67,8 @@ def train():
         name=utils.latest_checkpoint_path(hps.model_dir, "D_*.pth")
         global_step=int(name[name.rfind("_") + 1:name.rfind(".")]) + 1
     except Exception:
-        print("load old checkpoint failed...")
+        if accelerator.is_main_process:
+            print("load old checkpoint failed...")
         epoch_str = 1
         global_step = 0
     if skip_optimizer:
@@ -80,7 +81,8 @@ def train():
 
     train_loader, net_g, net_d, optim_g, optim_d, scheduler_g, scheduler_d = accelerator.prepare(train_loader, net_g, net_d, optim_g, optim_d, scheduler_g, scheduler_d)
 
-    print("======= Start training =======")
+    if accelerator.is_main_process:
+        print("======= Start training =======")
     with progress:
         train_task = progress.add_task("Train", total=len(train_loader) - 1)
         for epoch in range(epoch_str, hps.train.epochs + 1):
@@ -169,7 +171,7 @@ def train():
                         keep_ckpts = getattr(hps.train, 'keep_ckpts', 0)
                         if keep_ckpts > 0:
                             utils.clean_checkpoints(path_to_models=hps.model_dir, n_ckpts_to_keep=keep_ckpts, sort_by_time=True)
-                            print(f"Save checkpoint: G_{global_step}.pth D_{global_step}.pth | epoch={epoch}, step={global_step}, lr={optim_g.param_groups[0]['lr']:.5f}, loss_g={loss_gen.item():.2f}, loss_fm={loss_fm.item():.2f}, loss_mel={loss_mel.item():.2f}, loss_kl={loss_kl.item():.4f}, loss_wav={loss_wav.item():.2f}, vq_loss={commit_loss.item():.2f}")
+                        print(f"Save checkpoint: G_{global_step}.pth D_{global_step}.pth | epoch={epoch}, step={global_step}, lr={optim_g.param_groups[0]['lr']:.5f}, loss_g={loss_gen.item():.2f}, loss_fm={loss_fm.item():.2f}, loss_mel={loss_mel.item():.2f}, loss_kl={loss_kl.item():.4f}, loss_wav={loss_wav.item():.2f}, vq_loss={commit_loss.item():.2f}")
                     end_time = time.time()
                     progress.update(train_task, advance=1, description=f"speed={1 / (end_time - start_time):.2f}it/s, epoch={epoch}, step={global_step}, lr={optim_g.param_groups[0]['lr']:.5f}, loss_g={loss_gen.item():.2f}, loss_fm={loss_fm.item():.2f}, loss_mel={loss_mel.item():.2f}, loss_kl={loss_kl.item():.2f}, loss_wav={loss_wav.item():.2f}, vq_loss={commit_loss.item():.4f}, grad_norm={grad_norm_g:.2f}")
                 

@@ -3,15 +3,9 @@
 
 ## 0. Introduction
 ![Diagram](EnCodec.png)
-**This project is an unofficial reproduction of encodec. The training framework comes from [so-vits-svc](https://github.com/svc-develop-team/so-vits-svc).**
+**This network is equivalent to removing RVQ from the Encodec, please refer to the Encodec for the diagram. The training framework comes from [so-vits-svc](https://github.com/svc-develop-team/so-vits-svc).**
 
-## 1. Install
-
-### Install pytorch: 
-
-https://pytorch.org/get-started/locally/
-
-### Install dependencies (recommended to use conda):
+## 1. Install (recommended to use conda)
 ```
 conda create -n hifi-vaegan python=3.10
 ```
@@ -19,8 +13,12 @@ conda create -n hifi-vaegan python=3.10
 conda activate hifi-vaegan
 ```
 ```
+Install pytorch: https://pytorch.org/get-started/locally/
+```
+```
 pip install -r requirements.txt
 ```
+
 ## 2. Prepare Data
 You can use any high-quality audio data, including but not limited to vocals and instruments, and there is no need for classification.
 
@@ -30,6 +28,7 @@ Place all data in the "dataset_raw" folder without any nested subfolders.
 ```
 python resample.py
 ```
+
 ## 4. Modify config file
 ```
 python preprocess_config.py
@@ -42,7 +41,7 @@ Then you can modify the following options as needed in the configs\config.json f
 
 **learning_rate:** learning rate
 
-**batch_size:** Increase it as much as possible to use all the video memory
+**batch_size:** Increase it as much as possible to use all the video memory (Important!)
 
 **fp16_run:** "False: is fp32, "True" uses **half_type** to control accuracy
 
@@ -54,13 +53,12 @@ Then you can modify the following options as needed in the configs\config.json f
 
 **keep_ckpts:** How many checkpoints to save
 
-**all_in_mem:** If you have TB-level memory, turning it on can slightly speed up training and reduce hard disk pressure.
-
 ## 5. Train
 ```
 python train.py -m <Experiment name>
 ```
+
 ## 6. Tensorboard
 ```
-tensorboard --logdir=logs --load_fast=False
+tensorboard --logdir=logs --load_fast=false
 ```
