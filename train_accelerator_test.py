@@ -95,8 +95,8 @@ def train():
             net_g.train()
             net_d.train()
             for _, items in enumerate(train_loader):
+                start_time = time.time()
                 with accelerator.accumulate(net_g,net_d):
-                    start_time = time.time()
                     wav, lengths = items
 
                     mel = mel_spectrogram_torch(
@@ -146,9 +146,6 @@ def train():
                     accelerator.backward(loss_gen_all)
                     grad_norm_g = commons.clip_grad_value_(net_g.parameters(), None)
                     optim_g.step()
-                    
-                    scheduler_g.step()
-                    scheduler_d.step()
 
                 if accelerator.is_main_process:
                     if global_step % hps.train.log_interval == 0:
@@ -171,14 +168,16 @@ def train():
                         keep_ckpts = getattr(hps.train, 'keep_ckpts', 0)
                         if keep_ckpts > 0:
                             utils.clean_checkpoints(path_to_models=hps.model_dir, n_ckpts_to_keep=keep_ckpts, sort_by_time=True)
-                        print(f"Save checkpoint: G_{global_step}.pth D_{global_step}.pth | epoch={epoch}, step={global_step}, lr={optim_g.param_groups[0]['lr']:.5f}, loss_g={loss_gen.item():.2f}, loss_fm={loss_fm.item():.2f}, loss_mel={loss_mel.item():.2f}, loss_kl={loss_kl.item():.4f}, loss_wav={loss_wav.item():.2f}, vq_loss={commit_loss.item():.2f}")
-                    end_time = time.time()
-                    progress.update(train_task, advance=1, description=f"speed={1 / (end_time - start_time):.2f}it/s, epoch={epoch}, step={global_step}, lr={optim_g.param_groups[0]['lr']:.5f}, loss_g={loss_gen.item():.2f}, loss_fm={loss_fm.item():.2f}, loss_mel={loss_mel.item():.2f}, loss_kl={loss_kl.item():.2f}, loss_wav={loss_wav.item():.2f}, vq_loss={commit_loss.item():.4f}, grad_norm={grad_norm_g:.2f}")
+                            print(f"Save checkpoint: G_{global_step}.pth D_{global_step}.pth | epoch={epoch}, step={global_step}, lr={optim_g.param_groups[0]['lr']:.5f}, loss_g={loss_gen.item():.2f}, loss_fm={loss_fm.item():.2f}, loss_mel={loss_mel.item():.2f}, loss_kl={loss_kl.item():.4f}, loss_wav={loss_wav.item():.2f}, vq_loss={commit_loss.item():.2f}")
+                end_time = time.time()
+                progress.update(train_task, advance=1, description=f"speed={1 / (end_time - start_time):.2f}it/s, epoch={epoch}, step={global_step}, lr={optim_g.param_groups[0]['lr']:.5f}, loss_g={loss_gen.item():.2f}, loss_fm={loss_fm.item():.2f}, loss_mel={loss_mel.item():.2f}, loss_kl={loss_kl.item():.2f}, loss_wav={loss_wav.item():.2f}, vq_loss={commit_loss.item():.4f}, grad_norm={grad_norm_g:.2f}")
                 
                 if accelerator.sync_gradients:
                     global_step += 1
                     
                 accelerator.wait_for_everyone()
+            scheduler_g.step()
+            scheduler_d.step()
             progress.reset(train_task)
 
 def evaluate(hps, generator, eval_loader, writer):
