@@ -163,7 +163,7 @@ def train():
 
                     if global_step % hps.train.eval_interval == 0:
                         evaluate(hps, net_g, eval_loader, writer)
-                        utils.save_checkpoint(accelerator.unwrap_model(net_g) , optim_g, hps.train.learning_rate, epoch, os.path.join(hps.model_dir, "G_{}.pth".format(global_step)))
+                        utils.save_checkpoint(accelerator.unwrap_model(net_g), optim_g, hps.train.learning_rate, epoch, os.path.join(hps.model_dir, "G_{}.pth".format(global_step)))
                         utils.save_checkpoint(accelerator.unwrap_model(net_d), optim_d, hps.train.learning_rate, epoch, os.path.join(hps.model_dir, "D_{}.pth".format(global_step)))
                         keep_ckpts = getattr(hps.train, 'keep_ckpts', 0)
                         if keep_ckpts > 0:
@@ -175,7 +175,6 @@ def train():
                 if accelerator.sync_gradients:
                     global_step += 1
                     
-                accelerator.wait_for_everyone()
             scheduler_g.step()
             scheduler_d.step()
             progress.reset(train_task)
